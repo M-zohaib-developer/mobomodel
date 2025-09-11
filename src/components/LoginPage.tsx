@@ -80,9 +80,9 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 via-green-800 to-black flex items-center justify-center p-4">
+<div className="min-h-screen bg-green flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-black/20 backdrop-blur-sm rounded-2xl border border-green-500/20 p-8 shadow-2xl">
+<div className="bg-green-900 rounded-2xl border border-green-700 p-8 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">

@@ -36,7 +36,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
           ...commonItems.slice(0, 1),
           { id: "place-order", label: "Place Order", icon: Plus },
           { id: "order-tracking", label: "Track Orders", icon: Search },
-          { id: "reports", label: "Reports", icon: FileText },
+          // { id: "reports", label: "Reports", icon: FileText },
           { id: "client-reports", label: "Reports", icon: FileText},
           ...commonItems.slice(1),
         ];
@@ -47,7 +47,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
           { id: "qc-page", label: "Quality Check", icon: CheckCircle },
           { id: "clearance-page", label: "Clearance", icon: CheckCircle },
           { id: "technician-page", label: "Technician", icon: CheckCircle },
-          { id: "repair-qc-page", label: "Repair QC", icon: CheckCircle },
+          // { id: "repair-qc-page", label: "Repair QC", icon: CheckCircle },
           { id: "inventory-page", label: "Inventory", icon: Package },
           { id: "reports", label: "Reports", icon: FileText },
           
