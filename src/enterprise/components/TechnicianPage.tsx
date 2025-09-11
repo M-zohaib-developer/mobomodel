@@ -98,8 +98,9 @@ export function TechnicianManagementPage({
   };
 
   const getTechnicianStats = (techId: string) => {
-    const assignedCount = devices.filter((d) => d.technicianId === techId)
-      .length;
+    const assignedCount = devices.filter(
+      (d) => d.technicianId === techId
+    ).length;
     const completedCount = devices.filter(
       (d) => d.technicianId === techId && d.status === "completed"
     ).length;
@@ -109,6 +110,7 @@ export function TechnicianManagementPage({
   // Workflow actions: approve -> send to QC, reject -> send to Inventory
   const handleTechnicianApprove = (device: Device) => {
     if (!window.confirm("Approve device and send to QC?")) return;
+
     const updatedDevice: Device = {
       ...device,
       status: "qc",
@@ -118,11 +120,24 @@ export function TechnicianManagementPage({
       ],
       updatedAt: new Date().toISOString(),
     };
+
     dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });
+
+    // persist immediately so other pages/read on reload see change
+    try {
+      const persisted = Array.isArray(state.devices)
+        ? state.devices.map((d) => (d.id === updatedDevice.id ? updatedDevice : d))
+        : [updatedDevice];
+      localStorage.setItem("devices", JSON.stringify(persisted));
+    } catch {}
+
+    // navigate to QC page so the device appears there and disappears here
+    onNavigate("qc-page");
   };
 
   const handleTechnicianReject = (device: Device) => {
     if (!window.confirm("Reject device and send to Inventory?")) return;
+
     const updatedDevice: Device = {
       ...device,
       status: "inventory",
@@ -132,7 +147,19 @@ export function TechnicianManagementPage({
       ],
       updatedAt: new Date().toISOString(),
     };
+
     dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });
+
+    // persist immediately so other pages/read on reload see change
+    try {
+      const persisted = Array.isArray(state.devices)
+        ? state.devices.map((d) => (d.id === updatedDevice.id ? updatedDevice : d))
+        : [updatedDevice];
+      localStorage.setItem("devices", JSON.stringify(persisted));
+    } catch {}
+
+    // navigate to Inventory page so the device appears there and disappears here
+    onNavigate("inventory-page");
   };
 
   const assignDeviceToTechnician = (deviceId: string, techId: string) => {
@@ -380,7 +407,9 @@ export function TechnicianManagementPage({
                       <Wrench className="h-4 w-4 text-green-600 mr-2" />
                       <span
                         className={`font-medium ${
-                          settings.theme === "dark" ? "text-white" : "text-gray-900"
+                          settings.theme === "dark"
+                            ? "text-white"
+                            : "text-gray-900"
                         }`}
                       >
                         Specialization
@@ -388,7 +417,9 @@ export function TechnicianManagementPage({
                     </div>
                     <p
                       className={`text-sm ${
-                        settings.theme === "dark" ? "text-gray-300" : "text-gray-700"
+                        settings.theme === "dark"
+                          ? "text-gray-300"
+                          : "text-gray-700"
                       }`}
                     >
                       {technician.specialization}
@@ -399,14 +430,18 @@ export function TechnicianManagementPage({
                     <div className="text-center">
                       <div
                         className={`text-2xl font-bold ${
-                          stats.assignedCount > 0 ? "text-blue-600" : "text-gray-400"
+                          stats.assignedCount > 0
+                            ? "text-blue-600"
+                            : "text-gray-400"
                         }`}
                       >
                         {stats.assignedCount}
                       </div>
                       <div
                         className={`text-xs ${
-                          settings.theme === "dark" ? "text-gray-400" : "text-gray-600"
+                          settings.theme === "dark"
+                            ? "text-gray-400"
+                            : "text-gray-600"
                         }`}
                       >
                         Assigned
@@ -415,14 +450,18 @@ export function TechnicianManagementPage({
                     <div className="text-center">
                       <div
                         className={`text-2xl font-bold ${
-                          stats.completedCount > 0 ? "text-green-600" : "text-gray-400"
+                          stats.completedCount > 0
+                            ? "text-green-600"
+                            : "text-gray-400"
                         }`}
                       >
                         {stats.completedCount}
                       </div>
                       <div
                         className={`text-xs ${
-                          settings.theme === "dark" ? "text-gray-400" : "text-gray-600"
+                          settings.theme === "dark"
+                            ? "text-gray-400"
+                            : "text-gray-600"
                         }`}
                       >
                         Completed
@@ -432,12 +471,16 @@ export function TechnicianManagementPage({
 
                   <div
                     className={`mt-4 pt-4 border-t ${
-                      settings.theme === "dark" ? "border-gray-700" : "border-gray-200"
+                      settings.theme === "dark"
+                        ? "border-gray-700"
+                        : "border-gray-200"
                     }`}
                   >
                     <p
                       className={`text-xs ${
-                        settings.theme === "dark" ? "text-gray-500" : "text-gray-400"
+                        settings.theme === "dark"
+                          ? "text-gray-500"
+                          : "text-gray-400"
                       }`}
                     >
                       Joined{" "}
@@ -447,23 +490,48 @@ export function TechnicianManagementPage({
 
                   {/* Assigned devices + actions */}
                   <div className="mt-4">
-                    <h4 className={`font-medium mb-2 ${settings.theme === "dark" ? "text-white" : "text-gray-900"}`}>
+                    <h4
+                      className={`font-medium mb-2 ${
+                        settings.theme === "dark"
+                          ? "text-white"
+                          : "text-gray-900"
+                      }`}
+                    >
                       Assigned Devices
                     </h4>
 
                     {assignedDevices.length === 0 ? (
-                      <p className={`text-sm ${settings.theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>
+                      <p
+                        className={`text-sm ${
+                          settings.theme === "dark"
+                            ? "text-gray-400"
+                            : "text-gray-600"
+                        }`}
+                      >
                         No devices assigned
                       </p>
                     ) : (
                       <div className="space-y-3">
                         {assignedDevices.map((d) => (
-                          <div key={d.id} className={`p-3 rounded-lg border ${settings.theme === "dark" ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                          <div
+                            key={d.id}
+                            className={`p-3 rounded-lg border ${
+                              settings.theme === "dark"
+                                ? "bg-gray-700 border-gray-600"
+                                : "bg-gray-50 border-gray-200"
+                            }`}
+                          >
                             <div className="flex items-start justify-between">
                               <div>
-                                <div className="font-medium">{d.brand} {d.model}</div>
-                                <div className="text-sm text-gray-400">Status: {d.status}</div>
-                                <div className="text-xs text-gray-500">Issue: {d.reportedIssue}</div>
+                                <div className="font-medium">
+                                  {d.brand} {d.model}
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                  Status: {d.status}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Issue: {d.reportedIssue}
+                                </div>
                               </div>
 
                               <div className="flex items-center space-x-2">
@@ -496,33 +564,56 @@ export function TechnicianManagementPage({
 
         {/* Unassigned technician queue (devices sent back from QC) */}
         {unassignedTechnicianDevices.length > 0 && (
-          <div className={`rounded-xl p-6 border mb-6 ${
-            settings.theme === "dark" ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-          }`}>
-            <h3 className={`text-lg font-semibold mb-4 ${settings.theme === "dark" ? "text-white" : "text-gray-900"}`}>
+          <div
+            className={`rounded-xl p-6 border mb-6 ${
+              settings.theme === "dark"
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+            }`}
+          >
+            <h3
+              className={`text-lg font-semibold mb-4 ${
+                settings.theme === "dark" ? "text-white" : "text-gray-900"
+              }`}
+            >
               Unassigned Technician Queue
             </h3>
 
             <div className="space-y-3">
               {unassignedTechnicianDevices.map((d) => (
-                <div key={d.id} className={`p-3 rounded-lg border flex items-center justify-between ${
-                  settings.theme === "dark" ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
-                }`}>
+                <div
+                  key={d.id}
+                  className={`p-3 rounded-lg border flex items-center justify-between ${
+                    settings.theme === "dark"
+                      ? "bg-gray-700 border-gray-600"
+                      : "bg-gray-50 border-gray-200"
+                  }`}
+                >
                   <div>
-                    <div className="font-medium">{d.brand} {d.model}</div>
-                    <div className="text-sm text-gray-400">Issue: {d.reportedIssue}</div>
-                    <div className="text-xs text-gray-500">Order: {d.orderId || "—"}</div>
+                    <div className="font-medium">
+                      {d.brand} {d.model}
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      Issue: {d.reportedIssue}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Order: {d.orderId || "—"}
+                    </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <select
                       value={assignMap[d.id] || ""}
-                      onChange={(e) => setAssignMap({ ...assignMap, [d.id]: e.target.value })}
+                      onChange={(e) =>
+                        setAssignMap({ ...assignMap, [d.id]: e.target.value })
+                      }
                       className="px-2 py-1 rounded-lg border bg-white text-sm"
                     >
                       <option value="">Assign to...</option>
                       {technicians.map((t) => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
                       ))}
                     </select>
                     <button
