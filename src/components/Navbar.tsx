@@ -37,6 +37,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
           { id: "place-order", label: "Place Order", icon: Plus },
           { id: "order-tracking", label: "Track Orders", icon: Search },
           { id: "reports", label: "Reports", icon: FileText },
+          { id: "client-reports", label: "Reports", icon: FileText},
           ...commonItems.slice(1),
         ];
       case "enterprise":
@@ -49,6 +50,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
           { id: "repair-qc-page", label: "Repair QC", icon: CheckCircle },
           { id: "inventory-page", label: "Inventory", icon: Package },
           { id: "reports", label: "Reports", icon: FileText },
+          
           ...commonItems.slice(1),
         ];
       case "admin":

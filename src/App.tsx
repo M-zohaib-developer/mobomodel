@@ -7,7 +7,8 @@ import { EnterpriseDashboard } from "./enterprise/components/EnterpriseDashboard
 import { AdminDashboard } from "./admin/components/AdminDashboard";
 import { PlaceOrderPage } from "./client/components/PlaceOrderPage";
 import { OrderTrackingPage } from "./client/components/OrderTrackingPage";
-import { ReportsPage } from "./shared/components/ReportsPage";
+import { ClientReportsPage } from "./client/components/ClientReportsPage";
+import { EnterpriseReportsPage } from "./enterprise/components/EnterpriseReportsPage";
 import { SettingsPage } from "./shared/components/SettingsPage";
 
 // Import additional components that will be created
@@ -24,6 +25,7 @@ import { UserManagementPage } from "./admin/components/UserManagementPage";
 import { OrderManagementPage } from "./admin/components/OrderManagementPage";
 import { TechnicianManagementPage } from "./admin/components/TechnicianManagementPage";
 import { AnalyticsPage } from "./admin/components/AnalyticsPage";
+
 
 function AppContent() {
   const { state } = useApp();
@@ -89,7 +91,9 @@ function AppContent() {
       case "analytics":
         return <AnalyticsPage onNavigate={handleNavigate} />;
       case "reports":
-        return <ReportsPage onNavigate={handleNavigate} />;
+        return <EnterpriseReportsPage onNavigate={handleNavigate} />;
+        case "client-reports":
+        return <ClientReportsPage onNavigate={handleNavigate} />;
       case "settings":
         return <SettingsPage onNavigate={handleNavigate} />;
       default:
