@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useApp } from "../../context/AppContext";
+import { Device, ClearanceReview } from "../../types";
 import {
   CheckCircle,
   XCircle,
@@ -9,8 +11,6 @@ import {
   User,
   FileText,
 } from "lucide-react";
-import { useApp } from "../../context/AppContext";
-import { Device, ClearanceReview, Report } from "../../types";
 
 interface ClearancePageProps {
   onNavigate: (page: string) => void;
@@ -18,9 +18,8 @@ interface ClearancePageProps {
 
 export function ClearancePage({ onNavigate }: ClearancePageProps) {
   const { state, dispatch } = useApp();
-  const { devices, settings, currentUser } = state;
+  const { devices, currentUser } = state;
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
-  const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewNotes, setReviewNotes] = useState("");
 
   const clearanceDevices = devices.filter((d) => d.status === "clearance");
@@ -29,6 +28,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
     device: Device,
     status: "approved" | "rejected"
   ) => {
+    // create review record
     const clearanceReview: ClearanceReview = {
       id: Date.now().toString(),
       deviceId: device.id,
@@ -41,61 +41,41 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
 
     dispatch({ type: "ADD_CLEARANCE_REVIEW", payload: clearanceReview });
 
-    // Update device status
-    let newStatus: Device["status"];
-    if (status === "approved") {
-      newStatus = "completed";
-
-      // Generate report when device is completed
-      const report: Report = {
-        id: Date.now().toString(),
-        deviceId: device.id,
-        orderId: device.orderId || "",
-        clientId: device.clientId,
-        summary: `Refurbishment completed for ${device.brand} ${device.model}`,
-        workDone: [
-          "Initial quality assessment",
-          "Diagnostic testing",
-          "Component repair/replacement",
-          "Final cleaning and inspection",
-          "Quality assurance testing",
-        ],
-        partsReplaced: ["Screen protector", "Battery (if applicable)"],
-        finalStatus: "Fully refurbished and tested",
-        technicianNotes:
-          device.notes.join(". ") ||
-          "Device successfully refurbished to factory standards.",
-        qcNotes: device.qcNotes?.join(". ") || "Passed quality control",
-        clearanceNotes: reviewNotes,
-        generatedBy: currentUser?.id || "",
-        createdAt: new Date().toISOString(),
-        submittedAt: new Date().toISOString(),
-        status: "submitted",
-      };
-
-      dispatch({ type: "ADD_REPORT", payload: report });
-    } else {
-      newStatus = "technician";
-    }
+    // update device status
+    const newStatus: Device["status"] = status === "approved" ? "completed" : "failed";
 
     const updatedDevice: Device = {
       ...device,
       status: newStatus,
       clearanceNotes: [...(device.clearanceNotes || []), reviewNotes],
-      completedAt: status === "approved" ? new Date().toISOString() : undefined,
       updatedAt: new Date().toISOString(),
     };
 
     dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });
 
-    setShowReviewModal(false);
+    // persist devices state to localStorage (so reports / other pages see change after reload)
+    try {
+      const persisted = Array.isArray(state.devices) ? state.devices.map((d) => (d.id === updatedDevice.id ? updatedDevice : d)) : [updatedDevice];
+      localStorage.setItem("devices", JSON.stringify(persisted));
+    } catch {
+      // ignore
+    }
+
+    // store pending report target so Reports page can open with the device selected
+    try {
+      localStorage.setItem("pendingReportDeviceId", updatedDevice.id);
+    } catch {}
+
+    // navigate enterprise to reports page for writing the report
+    onNavigate("reports");
+
+    // reset local UI
     setSelectedDevice(null);
     setReviewNotes("");
   };
 
   const handleReviewDevice = (device: Device) => {
     setSelectedDevice(device);
-    setShowReviewModal(true);
   };
 
   const getClientName = (clientId: string) => {
@@ -106,7 +86,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
   return (
     <div
       className={`min-h-screen transition-colors duration-200 ${
-        settings.theme === "dark" ? "bg-gray-900" : "bg-gray-50"
+        state.settings.theme === "dark" ? "bg-gray-900" : "bg-gray-50"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -114,14 +94,14 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
         <div className="mb-8">
           <h1
             className={`text-3xl font-bold mb-2 ${
-              settings.theme === "dark" ? "text-white" : "text-gray-900"
+              state.settings.theme === "dark" ? "text-white" : "text-gray-900"
             }`}
           >
             Final Clearance
           </h1>
           <p
             className={`text-lg ${
-              settings.theme === "dark" ? "text-gray-300" : "text-gray-600"
+              state.settings.theme === "dark" ? "text-gray-300" : "text-gray-600"
             }`}
           >
             Final review and approval of refurbished devices
@@ -132,7 +112,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div
             className={`rounded-xl p-6 border ${
-              settings.theme === "dark"
+              state.settings.theme === "dark"
                 ? "bg-gray-800 border-gray-700"
                 : "bg-white border-gray-200"
             }`}
@@ -142,7 +122,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
               <div className="ml-4">
                 <p
                   className={`text-sm font-medium ${
-                    settings.theme === "dark"
+                    state.settings.theme === "dark"
                       ? "text-gray-300"
                       : "text-gray-600"
                   }`}
@@ -151,7 +131,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                 </p>
                 <p
                   className={`text-2xl font-bold ${
-                    settings.theme === "dark" ? "text-white" : "text-gray-900"
+                    state.settings.theme === "dark" ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {clearanceDevices.length}
@@ -162,7 +142,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
 
           <div
             className={`rounded-xl p-6 border ${
-              settings.theme === "dark"
+              state.settings.theme === "dark"
                 ? "bg-gray-800 border-gray-700"
                 : "bg-white border-gray-200"
             }`}
@@ -172,7 +152,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
               <div className="ml-4">
                 <p
                   className={`text-sm font-medium ${
-                    settings.theme === "dark"
+                    state.settings.theme === "dark"
                       ? "text-gray-300"
                       : "text-gray-600"
                   }`}
@@ -181,7 +161,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                 </p>
                 <p
                   className={`text-2xl font-bold ${
-                    settings.theme === "dark" ? "text-white" : "text-gray-900"
+                    state.settings.theme === "dark" ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {
@@ -199,7 +179,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
 
           <div
             className={`rounded-xl p-6 border ${
-              settings.theme === "dark"
+              state.settings.theme === "dark"
                 ? "bg-gray-800 border-gray-700"
                 : "bg-white border-gray-200"
             }`}
@@ -209,7 +189,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
               <div className="ml-4">
                 <p
                   className={`text-sm font-medium ${
-                    settings.theme === "dark"
+                    state.settings.theme === "dark"
                       ? "text-gray-300"
                       : "text-gray-600"
                   }`}
@@ -218,7 +198,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                 </p>
                 <p
                   className={`text-2xl font-bold ${
-                    settings.theme === "dark" ? "text-white" : "text-gray-900"
+                    state.settings.theme === "dark" ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {
@@ -238,7 +218,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
         {/* Devices List */}
         <div
           className={`rounded-xl border overflow-hidden ${
-            settings.theme === "dark"
+            state.settings.theme === "dark"
               ? "bg-gray-800 border-gray-700"
               : "bg-white border-gray-200"
           }`}
@@ -247,13 +227,13 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
             <table className="w-full">
               <thead
                 className={`${
-                  settings.theme === "dark" ? "bg-gray-750" : "bg-gray-50"
+                  state.settings.theme === "dark" ? "bg-gray-750" : "bg-gray-50"
                 }`}
               >
                 <tr>
                   <th
                     className={`text-left py-3 px-4 font-medium ${
-                      settings.theme === "dark"
+                      state.settings.theme === "dark"
                         ? "text-gray-300"
                         : "text-gray-700"
                     }`}
@@ -262,7 +242,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                   </th>
                   <th
                     className={`text-left py-3 px-4 font-medium ${
-                      settings.theme === "dark"
+                      state.settings.theme === "dark"
                         ? "text-gray-300"
                         : "text-gray-700"
                     }`}
@@ -271,7 +251,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                   </th>
                   <th
                     className={`text-left py-3 px-4 font-medium ${
-                      settings.theme === "dark"
+                      state.settings.theme === "dark"
                         ? "text-gray-300"
                         : "text-gray-700"
                     }`}
@@ -280,7 +260,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                   </th>
                   <th
                     className={`text-left py-3 px-4 font-medium ${
-                      settings.theme === "dark"
+                      state.settings.theme === "dark"
                         ? "text-gray-300"
                         : "text-gray-700"
                     }`}
@@ -289,7 +269,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                   </th>
                   <th
                     className={`text-left py-3 px-4 font-medium ${
-                      settings.theme === "dark"
+                      state.settings.theme === "dark"
                         ? "text-gray-300"
                         : "text-gray-700"
                     }`}
@@ -303,14 +283,14 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                   <tr
                     key={device.id}
                     className={`border-t ${
-                      settings.theme === "dark"
+                      state.settings.theme === "dark"
                         ? "border-gray-700"
                         : "border-gray-200"
                     }`}
                   >
                     <td
                       className={`py-4 px-4 ${
-                        settings.theme === "dark"
+                        state.settings.theme === "dark"
                           ? "text-white"
                           : "text-gray-900"
                       }`}
@@ -323,7 +303,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                           </div>
                           <div
                             className={`text-sm ${
-                              settings.theme === "dark"
+                              state.settings.theme === "dark"
                                 ? "text-gray-400"
                                 : "text-gray-600"
                             }`}
@@ -335,7 +315,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                     </td>
                     <td
                       className={`py-4 px-4 ${
-                        settings.theme === "dark"
+                        state.settings.theme === "dark"
                           ? "text-gray-300"
                           : "text-gray-600"
                       }`}
@@ -347,7 +327,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                     </td>
                     <td
                       className={`py-4 px-4 ${
-                        settings.theme === "dark"
+                        state.settings.theme === "dark"
                           ? "text-gray-300"
                           : "text-gray-600"
                       }`}
@@ -356,7 +336,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                     </td>
                     <td
                       className={`py-4 px-4 ${
-                        settings.theme === "dark"
+                        state.settings.theme === "dark"
                           ? "text-gray-300"
                           : "text-gray-600"
                       }`}
@@ -385,19 +365,19 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
           <div className="text-center py-12">
             <CheckCircle
               className={`h-16 w-16 mx-auto mb-4 ${
-                settings.theme === "dark" ? "text-gray-600" : "text-gray-400"
+                state.settings.theme === "dark" ? "text-gray-600" : "text-gray-400"
               }`}
             />
             <h3
               className={`text-xl font-semibold mb-2 ${
-                settings.theme === "dark" ? "text-white" : "text-gray-900"
+                state.settings.theme === "dark" ? "text-white" : "text-gray-900"
               }`}
             >
               No devices pending clearance
             </h3>
             <p
               className={`${
-                settings.theme === "dark" ? "text-gray-400" : "text-gray-600"
+                state.settings.theme === "dark" ? "text-gray-400" : "text-gray-600"
               }`}
             >
               All devices have been cleared or are in other stages
@@ -406,26 +386,26 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
         )}
 
         {/* Clearance Review Modal */}
-        {showReviewModal && selectedDevice && (
+        {selectedDevice && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div
               className={`w-full max-w-2xl rounded-xl p-6 ${
-                settings.theme === "dark" ? "bg-gray-800" : "bg-white"
+                state.settings.theme === "dark" ? "bg-gray-800" : "bg-white"
               }`}
             >
               <div className="flex items-center justify-between mb-6">
                 <h2
                   className={`text-xl font-semibold ${
-                    settings.theme === "dark" ? "text-white" : "text-gray-900"
+                    state.settings.theme === "dark" ? "text-white" : "text-gray-900"
                   }`}
                 >
                   Final Clearance Review - {selectedDevice.brand}{" "}
                   {selectedDevice.model}
                 </h2>
                 <button
-                  onClick={() => setShowReviewModal(false)}
+                  onClick={() => setSelectedDevice(null)}
                   className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                    settings.theme === "dark"
+                    state.settings.theme === "dark"
                       ? "text-gray-400"
                       : "text-gray-500"
                   }`}
@@ -438,12 +418,12 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                 {/* Device Info */}
                 <div
                   className={`p-4 rounded-lg ${
-                    settings.theme === "dark" ? "bg-gray-700" : "bg-gray-100"
+                    state.settings.theme === "dark" ? "bg-gray-700" : "bg-gray-100"
                   }`}
                 >
                   <h3
                     className={`font-medium mb-2 ${
-                      settings.theme === "dark" ? "text-white" : "text-gray-900"
+                      state.settings.theme === "dark" ? "text-white" : "text-gray-900"
                     }`}
                   >
                     Device Information
@@ -452,7 +432,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                     <div>
                       <p
                         className={`text-sm ${
-                          settings.theme === "dark"
+                          state.settings.theme === "dark"
                             ? "text-gray-300"
                             : "text-gray-600"
                         }`}
@@ -462,7 +442,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                       </p>
                       <p
                         className={`text-sm ${
-                          settings.theme === "dark"
+                          state.settings.theme === "dark"
                             ? "text-gray-300"
                             : "text-gray-600"
                         }`}
@@ -474,7 +454,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                     <div>
                       <p
                         className={`text-sm ${
-                          settings.theme === "dark"
+                          state.settings.theme === "dark"
                             ? "text-gray-300"
                             : "text-gray-600"
                         }`}
@@ -484,7 +464,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                       </p>
                       <p
                         className={`text-sm ${
-                          settings.theme === "dark"
+                          state.settings.theme === "dark"
                             ? "text-gray-300"
                             : "text-gray-600"
                         }`}
@@ -497,7 +477,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                   <div className="mt-4">
                     <p
                       className={`text-sm ${
-                        settings.theme === "dark"
+                        state.settings.theme === "dark"
                           ? "text-gray-300"
                           : "text-gray-600"
                       }`}
@@ -513,14 +493,14 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                   selectedDevice.qcNotes.length > 0 && (
                     <div
                       className={`p-4 rounded-lg ${
-                        settings.theme === "dark"
+                        state.settings.theme === "dark"
                           ? "bg-gray-700"
                           : "bg-gray-100"
                       }`}
                     >
                       <h3
                         className={`font-medium mb-2 ${
-                          settings.theme === "dark"
+                          state.settings.theme === "dark"
                             ? "text-white"
                             : "text-gray-900"
                         }`}
@@ -529,7 +509,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                       </h3>
                       <p
                         className={`text-sm ${
-                          settings.theme === "dark"
+                          state.settings.theme === "dark"
                             ? "text-gray-300"
                             : "text-gray-600"
                         }`}
@@ -543,7 +523,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                 <div>
                   <label
                     className={`block text-sm font-medium mb-2 ${
-                      settings.theme === "dark"
+                      state.settings.theme === "dark"
                         ? "text-gray-300"
                         : "text-gray-700"
                     }`}
@@ -556,7 +536,7 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                     rows={4}
                     placeholder="Enter your final clearance notes..."
                     className={`w-full px-3 py-2 rounded-lg border transition-colors duration-200 ${
-                      settings.theme === "dark"
+                      state.settings.theme === "dark"
                         ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                         : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
                     }`}
@@ -566,9 +546,9 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
 
               <div className="flex justify-end space-x-3 mt-6">
                 <button
-                  onClick={() => setShowReviewModal(false)}
+                  onClick={() => setSelectedDevice(null)}
                   className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
-                    settings.theme === "dark"
+                    state.settings.theme === "dark"
                       ? "border-gray-600 text-gray-300 hover:bg-gray-700"
                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}

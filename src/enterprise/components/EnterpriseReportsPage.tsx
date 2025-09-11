@@ -2,33 +2,30 @@ import React, { useEffect, useState } from "react";
 import { useApp } from "../../context/AppContext";
 import { Report, Device } from "../../types";
 
-interface ReportsPageProps {
+interface EnterpriseReportsPageProps {
   onNavigate: (page: string) => void;
 }
 
-export function ReportsPage({ onNavigate }: ReportsPageProps) {
+export function EnterpriseReportsPage({ onNavigate }: EnterpriseReportsPageProps) {
   const { state, dispatch } = useApp();
   const { devices, currentUser } = state;
-
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string | "">("");
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // devices that usually require reports
+  const candidateDevices = devices.filter((d: Device) =>
+    ["failed", "completed", "clearance", "report-required"].includes(d.status)
+  );
+
   useEffect(() => {
-    // If ClearancePage placed a pending device id in localStorage, pick it
+    // if pendingReportDeviceId exists (from Clearance flow) auto-select
     const pending = localStorage.getItem("pendingReportDeviceId");
     if (pending) {
       setSelectedDeviceId(pending);
-      // remove it so it doesn't persist after using once
       try { localStorage.removeItem("pendingReportDeviceId"); } catch {}
     }
   }, []);
-
-  // allow enterprise to pick devices that need report OR show all for convenience
-  const availableDevices: Device[] = devices.filter((d) =>
-    // show devices that likely need reporting (failed/completed/clearance)
-    ["failed", "completed", "clearance", "report-required"].includes(d.status) || d.id === selectedDeviceId
-  );
 
   const handleSubmitReport = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -49,22 +46,19 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
       orderId: (devices.find((d) => d.id === selectedDeviceId) || {}).orderId || "",
       reporterId: currentUser?.id || "",
       description: description.trim(),
-      recipients: ["admin", "client"], // admin + client will see this report
+      recipients: ["admin", "client"], // enterprise-created reports go to admin + client
       createdAt: new Date().toISOString(),
     };
 
-    // dispatch and persist
     dispatch({ type: "ADD_REPORT", payload: report });
 
     try {
       const stored = JSON.parse(localStorage.getItem("reports") || "[]");
       const updated = Array.isArray(stored) ? [...stored, report] : [report];
       localStorage.setItem("reports", JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
+    } catch {}
 
-    // Optionally update device to mark report attached
+    // attach report id to device
     const device = devices.find((d) => d.id === selectedDeviceId);
     if (device) {
       const updatedDevice: Device = {
@@ -79,7 +73,6 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
       } catch {}
     }
 
-    // after submit, navigate enterprise back to dashboard (or wherever you prefer)
     setSubmitting(false);
     setDescription("");
     setSelectedDeviceId("");
@@ -88,7 +81,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
 
   return (
     <div className="min-h-screen p-6">
-      <h1 className="text-2xl font-bold mb-4">Reports</h1>
+      <h1 className="text-2xl font-bold mb-4">Enterprise Reports</h1>
 
       <form onSubmit={handleSubmitReport} className="max-w-2xl space-y-4">
         <div>
@@ -99,7 +92,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
             className="w-full px-3 py-2 border rounded"
           >
             <option value="">Select device to report</option>
-            {availableDevices.map((d) => (
+            {candidateDevices.map((d: Device) => (
               <option key={d.id} value={d.id}>
                 {d.brand} {d.model} — {d.status} — Order: {d.orderId || "—"}
               </option>
@@ -119,24 +112,15 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
         </div>
 
         <div className="flex justify-end space-x-2">
-          <button
-            type="button"
-            onClick={() => onNavigate("dashboard")}
-            className="px-4 py-2 border rounded"
-          >
+          <button type="button" onClick={() => onNavigate("dashboard")} className="px-4 py-2 border rounded">
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-4 py-2 bg-green-600 text-white rounded"
-          >
+          <button type="submit" disabled={submitting} className="px-4 py-2 bg-green-600 text-white rounded">
             {submitting ? "Submitting..." : "Submit Report"}
           </button>
         </div>
       </form>
 
-      {/* Below: list of existing reports so admin/client pages can read from state.reports/localStorage */}
       <div className="mt-8">
         <h2 className="text-lg font-semibold mb-2">Recent Reports</h2>
         <div className="space-y-3">
