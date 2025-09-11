@@ -18,6 +18,8 @@ import { QCPage } from "./enterprise/components/QCPage";
 import { ClearancePage } from "./enterprise/components/ClearancePage";
 import { RepairQCPage } from "./enterprise/components/RepairQCPage";
 import { InventoryPage } from "./enterprise/components/InventoryPage";
+import { TechnicianManagementPage as TechnicianPage } from "./enterprise/components/TechnicianPage";
+
 import { UserManagementPage } from "./admin/components/UserManagementPage";
 import { OrderManagementPage } from "./admin/components/OrderManagementPage";
 import { TechnicianManagementPage } from "./admin/components/TechnicianManagementPage";
@@ -71,6 +73,9 @@ function AppContent() {
         return <QCPage onNavigate={handleNavigate} />;
       case "clearance-page":
         return <ClearancePage onNavigate={handleNavigate} />;
+        case "technician-page":
+  return <TechnicianPage onNavigate={handleNavigate} />;
+
       case "repair-qc-page":
         return <RepairQCPage onNavigate={handleNavigate} />;
       case "inventory-page":

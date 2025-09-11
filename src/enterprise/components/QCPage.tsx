@@ -37,11 +37,13 @@ export function QCPage({ onNavigate }: QCPageProps) {
 
     dispatch({ type: "ADD_QC_REVIEW", payload: qcReview });
 
-    // Update device status
+    // Update device status so rejected devices go back to technician queue
     let newStatus: Device["status"];
     if (status === "approved") {
+      // approved by QC -> send to clearance (or next step)
       newStatus = "clearance";
     } else {
+      // rejected by QC -> send back to technician for rework
       newStatus = "technician";
     }
 
@@ -50,6 +52,8 @@ export function QCPage({ onNavigate }: QCPageProps) {
       status: newStatus,
       qcNotes: [...(device.qcNotes || []), reviewNotes],
       updatedAt: new Date().toISOString(),
+      // clear qc assignment if any
+      qcId: currentUser?.id || device.qcId,
     };
 
     dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });

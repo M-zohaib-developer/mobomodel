@@ -39,30 +39,52 @@ export function InventoryPage({ onNavigate }: InventoryPageProps) {
       createdAt: new Date().toISOString(),
     };
 
+    // store review record
     dispatch({ type: "ADD_INVENTORY_REVIEW", payload: inventoryReview });
 
-    // Update device status
+    // determine next device status
     let newStatus: Device["status"];
     if (status === "approved") {
+      // send back to technician queue (unassigned) for the normal tech workflow
       newStatus = "technician";
     } else {
-      // If rejected, keep in inventory for further review
-      newStatus = "inventory";
+      // inventory rejected -> mark failed and surface in reports
+      newStatus = "failed";
     }
 
     const updatedDevice: Device = {
       ...device,
       status: newStatus,
+      // clear technician assignment when sending back to technician queue
+      technicianId: status === "approved" ? undefined as any : device.technicianId,
       inventoryNotes: [...(device.inventoryNotes || []), reviewNotes],
       inventoryDate: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
+    // update app state
     dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });
 
+    // persist devices list to localStorage so change survives reloads
+    try {
+      const currentDevices = Array.isArray(state.devices) ? state.devices : [];
+      const persisted = currentDevices.map((d) =>
+        d.id === updatedDevice.id ? updatedDevice : d
+      );
+      localStorage.setItem("devices", JSON.stringify(persisted));
+    } catch {
+      // ignore localStorage errors
+    }
+
+    // reset UI modal / inputs
     setShowReviewModal(false);
     setSelectedDevice(null);
     setReviewNotes("");
+
+    // navigate to report page when inventory rejects a device
+    if (status === "rejected") {
+      onNavigate("reports");
+    }
   };
 
   const handleReviewDevice = (device: Device) => {

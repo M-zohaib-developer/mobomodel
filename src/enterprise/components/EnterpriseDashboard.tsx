@@ -111,6 +111,11 @@ export function EnterpriseDashboard({ onNavigate }: EnterpriseDashboardProps) {
         color: "bg-blue-600 hover:bg-blue-700",
       },
       {
+        label: "Technician",
+        action: () => onNavigate("technician-page"),
+        color: "bg-blue-600 hover:bg-blue-700",
+      },
+      {
         label: "Repair QC",
         action: () => onNavigate("repair-qc-page"),
         color: "bg-purple-600 hover:bg-purple-700",

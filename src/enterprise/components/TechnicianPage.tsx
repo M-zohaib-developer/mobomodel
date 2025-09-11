@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Users, Plus, Edit, Trash2, Search, Wrench } from "lucide-react";
 import { useApp } from "../../context/AppContext";
-import { Technician } from "../types";
+import { Technician, Device } from "../../types";
 
 interface TechnicianManagementPageProps {
   onNavigate: (page: string) => void;
@@ -20,12 +20,18 @@ export function TechnicianManagementPage({
     email: "",
     specialization: "",
   });
+  const [assignMap, setAssignMap] = useState<Record<string, string>>({});
 
   const filteredTechnicians = technicians.filter(
     (tech) =>
-    tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tech.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tech.specialization.toLowerCase().includes(searchTerm.toLowerCase())
+      tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tech.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tech.specialization.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Devices waiting for technician assignment (QC rejected -> status === 'technician' && no technician assigned)
+  const unassignedTechnicianDevices = devices.filter(
+    (d) => d.status === "technician" && !d.technicianId
   );
 
   const handleCreateTechnician = () => {
@@ -50,7 +56,7 @@ export function TechnicianManagementPage({
 
   const handleSaveTechnician = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (
       !techForm.name.trim() ||
       !techForm.email.trim() ||
@@ -65,7 +71,7 @@ export function TechnicianManagementPage({
         email: techForm.email.trim(),
         specialization: techForm.specialization.trim(),
       };
-      
+
       dispatch({ type: "UPDATE_TECHNICIAN", payload: updatedTech });
     } else {
       const newTech: Technician = {
@@ -77,7 +83,7 @@ export function TechnicianManagementPage({
         completedDevices: 0,
         createdAt: new Date().toISOString(),
       };
-      
+
       dispatch({ type: "ADD_TECHNICIAN", payload: newTech });
     }
 
@@ -92,13 +98,60 @@ export function TechnicianManagementPage({
   };
 
   const getTechnicianStats = (techId: string) => {
-    const assignedCount = devices.filter(
-      (d) => d.technicianId === techId
-    ).length;
+    const assignedCount = devices.filter((d) => d.technicianId === techId)
+      .length;
     const completedCount = devices.filter(
       (d) => d.technicianId === techId && d.status === "completed"
     ).length;
     return { assignedCount, completedCount };
+  };
+
+  // Workflow actions: approve -> send to QC, reject -> send to Inventory
+  const handleTechnicianApprove = (device: Device) => {
+    if (!window.confirm("Approve device and send to QC?")) return;
+    const updatedDevice: Device = {
+      ...device,
+      status: "qc",
+      technicianNotes: [
+        ...(device.technicianNotes || []),
+        `Approved by technician on ${new Date().toISOString()}`,
+      ],
+      updatedAt: new Date().toISOString(),
+    };
+    dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });
+  };
+
+  const handleTechnicianReject = (device: Device) => {
+    if (!window.confirm("Reject device and send to Inventory?")) return;
+    const updatedDevice: Device = {
+      ...device,
+      status: "inventory",
+      technicianNotes: [
+        ...(device.technicianNotes || []),
+        `Rejected by technician on ${new Date().toISOString()}`,
+      ],
+      updatedAt: new Date().toISOString(),
+    };
+    dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });
+  };
+
+  const assignDeviceToTechnician = (deviceId: string, techId: string) => {
+    const device = devices.find((d) => d.id === deviceId);
+    if (!device) return;
+    const updatedDevice: Device = {
+      ...device,
+      technicianId: techId,
+      status: "technician",
+      updatedAt: new Date().toISOString(),
+      technicianNotes: [
+        ...(device.technicianNotes || []),
+        `Assigned to technician ${techId} on ${new Date().toISOString()}`,
+      ],
+    };
+    dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });
+    const newMap = { ...assignMap };
+    delete newMap[deviceId];
+    setAssignMap(newMap);
   };
 
   return (
@@ -239,7 +292,7 @@ export function TechnicianManagementPage({
                 settings.theme === "dark" ? "text-gray-400" : "text-gray-600"
               }`}
             >
-              {technicians.length === 0 
+              {technicians.length === 0
                 ? "Add your first technician to get started"
                 : "No technicians match your search criteria"}
             </p>
@@ -256,7 +309,10 @@ export function TechnicianManagementPage({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTechnicians.map((technician) => {
               const stats = getTechnicianStats(technician.id);
-              
+              const assignedDevices = devices.filter(
+                (d) => d.technicianId === technician.id
+              );
+
               return (
                 <div
                   key={technician.id}
@@ -292,7 +348,7 @@ export function TechnicianManagementPage({
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleEditTechnician(technician)}
@@ -324,9 +380,7 @@ export function TechnicianManagementPage({
                       <Wrench className="h-4 w-4 text-green-600 mr-2" />
                       <span
                         className={`font-medium ${
-                          settings.theme === "dark"
-                            ? "text-white"
-                            : "text-gray-900"
+                          settings.theme === "dark" ? "text-white" : "text-gray-900"
                         }`}
                       >
                         Specialization
@@ -334,9 +388,7 @@ export function TechnicianManagementPage({
                     </div>
                     <p
                       className={`text-sm ${
-                        settings.theme === "dark"
-                          ? "text-gray-300"
-                          : "text-gray-700"
+                        settings.theme === "dark" ? "text-gray-300" : "text-gray-700"
                       }`}
                     >
                       {technician.specialization}
@@ -347,18 +399,14 @@ export function TechnicianManagementPage({
                     <div className="text-center">
                       <div
                         className={`text-2xl font-bold ${
-                          stats.assignedCount > 0
-                            ? "text-blue-600"
-                            : "text-gray-400"
+                          stats.assignedCount > 0 ? "text-blue-600" : "text-gray-400"
                         }`}
                       >
                         {stats.assignedCount}
                       </div>
                       <div
                         className={`text-xs ${
-                          settings.theme === "dark"
-                            ? "text-gray-400"
-                            : "text-gray-600"
+                          settings.theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
                         Assigned
@@ -367,18 +415,14 @@ export function TechnicianManagementPage({
                     <div className="text-center">
                       <div
                         className={`text-2xl font-bold ${
-                          stats.completedCount > 0
-                            ? "text-green-600"
-                            : "text-gray-400"
+                          stats.completedCount > 0 ? "text-green-600" : "text-gray-400"
                         }`}
                       >
                         {stats.completedCount}
                       </div>
                       <div
                         className={`text-xs ${
-                          settings.theme === "dark"
-                            ? "text-gray-400"
-                            : "text-gray-600"
+                          settings.theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
                         Completed
@@ -388,25 +432,116 @@ export function TechnicianManagementPage({
 
                   <div
                     className={`mt-4 pt-4 border-t ${
-                      settings.theme === "dark"
-                        ? "border-gray-700"
-                        : "border-gray-200"
+                      settings.theme === "dark" ? "border-gray-700" : "border-gray-200"
                     }`}
                   >
                     <p
                       className={`text-xs ${
-                        settings.theme === "dark"
-                          ? "text-gray-500"
-                          : "text-gray-400"
+                        settings.theme === "dark" ? "text-gray-500" : "text-gray-400"
                       }`}
                     >
                       Joined{" "}
                       {new Date(technician.createdAt).toLocaleDateString()}
                     </p>
                   </div>
+
+                  {/* Assigned devices + actions */}
+                  <div className="mt-4">
+                    <h4 className={`font-medium mb-2 ${settings.theme === "dark" ? "text-white" : "text-gray-900"}`}>
+                      Assigned Devices
+                    </h4>
+
+                    {assignedDevices.length === 0 ? (
+                      <p className={`text-sm ${settings.theme === "dark" ? "text-gray-400" : "text-gray-600"}`}>
+                        No devices assigned
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {assignedDevices.map((d) => (
+                          <div key={d.id} className={`p-3 rounded-lg border ${settings.theme === "dark" ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <div className="font-medium">{d.brand} {d.model}</div>
+                                <div className="text-sm text-gray-400">Status: {d.status}</div>
+                                <div className="text-xs text-gray-500">Issue: {d.reportedIssue}</div>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleTechnicianApprove(d)}
+                                  className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                                  title="Approve and send to QC"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleTechnicianReject(d)}
+                                  className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                                  title="Reject and send to Inventory"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Unassigned technician queue (devices sent back from QC) */}
+        {unassignedTechnicianDevices.length > 0 && (
+          <div className={`rounded-xl p-6 border mb-6 ${
+            settings.theme === "dark" ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+          }`}>
+            <h3 className={`text-lg font-semibold mb-4 ${settings.theme === "dark" ? "text-white" : "text-gray-900"}`}>
+              Unassigned Technician Queue
+            </h3>
+
+            <div className="space-y-3">
+              {unassignedTechnicianDevices.map((d) => (
+                <div key={d.id} className={`p-3 rounded-lg border flex items-center justify-between ${
+                  settings.theme === "dark" ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
+                }`}>
+                  <div>
+                    <div className="font-medium">{d.brand} {d.model}</div>
+                    <div className="text-sm text-gray-400">Issue: {d.reportedIssue}</div>
+                    <div className="text-xs text-gray-500">Order: {d.orderId || "—"}</div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <select
+                      value={assignMap[d.id] || ""}
+                      onChange={(e) => setAssignMap({ ...assignMap, [d.id]: e.target.value })}
+                      className="px-2 py-1 rounded-lg border bg-white text-sm"
+                    >
+                      <option value="">Assign to...</option>
+                      {technicians.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => {
+                        const techId = assignMap[d.id];
+                        if (!techId) {
+                          alert("Select a technician to assign");
+                          return;
+                        }
+                        assignDeviceToTechnician(d.id, techId);
+                      }}
+                      className="px-3 py-1 bg-green-600 text-white rounded-lg text-sm"
+                    >
+                      Assign
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

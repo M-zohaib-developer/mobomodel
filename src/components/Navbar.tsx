@@ -45,6 +45,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
           { id: "order-management", label: "Order Management", icon: Package },
           { id: "qc-page", label: "Quality Check", icon: CheckCircle },
           { id: "clearance-page", label: "Clearance", icon: CheckCircle },
+           { id: "technician-page", label: "Technician", icon: CheckCircle },
           { id: "repair-qc-page", label: "Repair QC", icon: CheckCircle },
           { id: "inventory-page", label: "Inventory", icon: Package },
           { id: "reports", label: "Reports", icon: FileText },
