@@ -56,7 +56,8 @@ export function InventoryPage({ onNavigate }: InventoryPageProps) {
       ...device,
       status: newStatus,
       // clear technician assignment when sending back to technician queue
-      technicianId: status === "approved" ? undefined as any : device.technicianId,
+      technicianId:
+        status === "approved" ? (undefined as any) : device.technicianId,
       inventoryNotes: [...(device.inventoryNotes || []), reviewNotes],
       inventoryDate: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

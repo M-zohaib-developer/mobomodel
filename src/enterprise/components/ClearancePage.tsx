@@ -42,7 +42,8 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
     dispatch({ type: "ADD_CLEARANCE_REVIEW", payload: clearanceReview });
 
     // update device status
-    const newStatus: Device["status"] = status === "approved" ? "completed" : "failed";
+    const newStatus: Device["status"] =
+      status === "approved" ? "completed" : "failed";
 
     const updatedDevice: Device = {
       ...device,
@@ -55,7 +56,11 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
 
     // persist devices state to localStorage (so reports / other pages see change after reload)
     try {
-      const persisted = Array.isArray(state.devices) ? state.devices.map((d) => (d.id === updatedDevice.id ? updatedDevice : d)) : [updatedDevice];
+      const persisted = Array.isArray(state.devices)
+        ? state.devices.map((d) =>
+            d.id === updatedDevice.id ? updatedDevice : d
+          )
+        : [updatedDevice];
       localStorage.setItem("devices", JSON.stringify(persisted));
     } catch {
       // ignore
@@ -101,7 +106,9 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
           </h1>
           <p
             className={`text-lg ${
-              state.settings.theme === "dark" ? "text-gray-300" : "text-gray-600"
+              state.settings.theme === "dark"
+                ? "text-gray-300"
+                : "text-gray-600"
             }`}
           >
             Final review and approval of refurbished devices
@@ -131,7 +138,9 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                 </p>
                 <p
                   className={`text-2xl font-bold ${
-                    state.settings.theme === "dark" ? "text-white" : "text-gray-900"
+                    state.settings.theme === "dark"
+                      ? "text-white"
+                      : "text-gray-900"
                   }`}
                 >
                   {clearanceDevices.length}
@@ -161,7 +170,9 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                 </p>
                 <p
                   className={`text-2xl font-bold ${
-                    state.settings.theme === "dark" ? "text-white" : "text-gray-900"
+                    state.settings.theme === "dark"
+                      ? "text-white"
+                      : "text-gray-900"
                   }`}
                 >
                   {
@@ -198,7 +209,9 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                 </p>
                 <p
                   className={`text-2xl font-bold ${
-                    state.settings.theme === "dark" ? "text-white" : "text-gray-900"
+                    state.settings.theme === "dark"
+                      ? "text-white"
+                      : "text-gray-900"
                   }`}
                 >
                   {
@@ -365,7 +378,9 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
           <div className="text-center py-12">
             <CheckCircle
               className={`h-16 w-16 mx-auto mb-4 ${
-                state.settings.theme === "dark" ? "text-gray-600" : "text-gray-400"
+                state.settings.theme === "dark"
+                  ? "text-gray-600"
+                  : "text-gray-400"
               }`}
             />
             <h3
@@ -377,7 +392,9 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
             </h3>
             <p
               className={`${
-                state.settings.theme === "dark" ? "text-gray-400" : "text-gray-600"
+                state.settings.theme === "dark"
+                  ? "text-gray-400"
+                  : "text-gray-600"
               }`}
             >
               All devices have been cleared or are in other stages
@@ -396,7 +413,9 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
               <div className="flex items-center justify-between mb-6">
                 <h2
                   className={`text-xl font-semibold ${
-                    state.settings.theme === "dark" ? "text-white" : "text-gray-900"
+                    state.settings.theme === "dark"
+                      ? "text-white"
+                      : "text-gray-900"
                   }`}
                 >
                   Final Clearance Review - {selectedDevice.brand}{" "}
@@ -418,12 +437,16 @@ export function ClearancePage({ onNavigate }: ClearancePageProps) {
                 {/* Device Info */}
                 <div
                   className={`p-4 rounded-lg ${
-                    state.settings.theme === "dark" ? "bg-gray-700" : "bg-gray-100"
+                    state.settings.theme === "dark"
+                      ? "bg-gray-700"
+                      : "bg-gray-100"
                   }`}
                 >
                   <h3
                     className={`font-medium mb-2 ${
-                      state.settings.theme === "dark" ? "text-white" : "text-gray-900"
+                      state.settings.theme === "dark"
+                        ? "text-white"
+                        : "text-gray-900"
                     }`}
                   >
                     Device Information

@@ -20,14 +20,19 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
     if (pending) {
       setSelectedDeviceId(pending);
       // remove it so it doesn't persist after using once
-      try { localStorage.removeItem("pendingReportDeviceId"); } catch {}
+      try {
+        localStorage.removeItem("pendingReportDeviceId");
+      } catch {}
     }
   }, []);
 
   // allow enterprise to pick devices that need report OR show all for convenience
-  const availableDevices: Device[] = devices.filter((d) =>
-    // show devices that likely need reporting (failed/completed/clearance)
-    ["failed", "completed", "clearance", "report-required"].includes(d.status) || d.id === selectedDeviceId
+  const availableDevices: Device[] = devices.filter(
+    (d) =>
+      // show devices that likely need reporting (failed/completed/clearance)
+      ["failed", "completed", "clearance", "report-required"].includes(
+        d.status
+      ) || d.id === selectedDeviceId
   );
 
   const handleSubmitReport = async (e?: React.FormEvent) => {
@@ -46,7 +51,8 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
     const report: Report = {
       id: Date.now().toString(),
       deviceId: selectedDeviceId,
-      orderId: (devices.find((d) => d.id === selectedDeviceId) || {}).orderId || "",
+      orderId:
+        (devices.find((d) => d.id === selectedDeviceId) || {}).orderId || "",
       reporterId: currentUser?.id || "",
       description: description.trim(),
       recipients: ["admin", "client"], // admin + client will see this report
@@ -74,7 +80,11 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
       };
       dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });
       try {
-        const persisted = Array.isArray(state.devices) ? state.devices.map((d) => (d.id === updatedDevice.id ? updatedDevice : d)) : [updatedDevice];
+        const persisted = Array.isArray(state.devices)
+          ? state.devices.map((d) =>
+              d.id === updatedDevice.id ? updatedDevice : d
+            )
+          : [updatedDevice];
         localStorage.setItem("devices", JSON.stringify(persisted));
       } catch {}
     }
@@ -140,13 +150,20 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
       <div className="mt-8">
         <h2 className="text-lg font-semibold mb-2">Recent Reports</h2>
         <div className="space-y-3">
-          {(state.reports || []).slice().reverse().map((r: Report) => (
-            <div key={r.id} className="p-3 border rounded">
-              <div className="text-sm text-gray-600">Device: {r.deviceId} • Order: {r.orderId}</div>
-              <div className="font-medium">{r.description}</div>
-              <div className="text-xs text-gray-400">By: {r.reporterId} • {new Date(r.createdAt).toLocaleString()}</div>
-            </div>
-          ))}
+          {(state.reports || [])
+            .slice()
+            .reverse()
+            .map((r: Report) => (
+              <div key={r.id} className="p-3 border rounded">
+                <div className="text-sm text-gray-600">
+                  Device: {r.deviceId} • Order: {r.orderId}
+                </div>
+                <div className="font-medium">{r.description}</div>
+                <div className="text-xs text-gray-400">
+                  By: {r.reporterId} • {new Date(r.createdAt).toLocaleString()}
+                </div>
+              </div>
+            ))}
         </div>
       </div>
     </div>

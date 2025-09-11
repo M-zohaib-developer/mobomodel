@@ -126,7 +126,9 @@ export function TechnicianManagementPage({
     // persist immediately so other pages/read on reload see change
     try {
       const persisted = Array.isArray(state.devices)
-        ? state.devices.map((d) => (d.id === updatedDevice.id ? updatedDevice : d))
+        ? state.devices.map((d) =>
+            d.id === updatedDevice.id ? updatedDevice : d
+          )
         : [updatedDevice];
       localStorage.setItem("devices", JSON.stringify(persisted));
     } catch {}
@@ -153,7 +155,9 @@ export function TechnicianManagementPage({
     // persist immediately so other pages/read on reload see change
     try {
       const persisted = Array.isArray(state.devices)
-        ? state.devices.map((d) => (d.id === updatedDevice.id ? updatedDevice : d))
+        ? state.devices.map((d) =>
+            d.id === updatedDevice.id ? updatedDevice : d
+          )
         : [updatedDevice];
       localStorage.setItem("devices", JSON.stringify(persisted));
     } catch {}

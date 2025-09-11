@@ -109,6 +109,26 @@ const initialState: AppState = {
   currentPage: "dashboard",
 };
 
+function mapDeviceToOrderStatus(deviceStatus: string) {
+  // map internal device statuses to order statuses (adjust labels to your app if needed)
+  switch (deviceStatus) {
+    case "qc":
+      return "in-qc";
+    case "technician":
+      return "with-technician";
+    case "inventory":
+      return "in-inventory";
+    case "clearance":
+      return "in-clearance";
+    case "completed":
+      return "completed";
+    case "failed":
+      return "failed";
+    default:
+      return deviceStatus;
+  }
+}
+
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "INITIALIZE_STATE":
@@ -154,13 +174,40 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         devices: [...state.devices, action.payload],
       };
-    case "UPDATE_DEVICE":
-      return {
-        ...state,
-        devices: state.devices.map((device) =>
-          device.id === action.payload.id ? action.payload : device
-        ),
-      };
+    case "UPDATE_DEVICE": {
+      const updatedDevice = action.payload as Device;
+
+      // update devices list
+      const devices = Array.isArray(state.devices)
+        ? state.devices.map((d) =>
+            d.id === updatedDevice.id ? updatedDevice : d
+          )
+        : [updatedDevice];
+
+      // update related order status (if device belongs to an order)
+      let orders = Array.isArray(state.orders) ? [...state.orders] : [];
+      if (updatedDevice.orderId) {
+        orders = orders.map((o) =>
+          o.id === updatedDevice.orderId
+            ? {
+                ...o,
+                status: mapDeviceToOrderStatus(updatedDevice.status),
+                updatedAt: new Date().toISOString(),
+              }
+            : o
+        );
+      }
+
+      // persist
+      try {
+        localStorage.setItem("devices", JSON.stringify(devices));
+        localStorage.setItem("orders", JSON.stringify(orders));
+      } catch (e) {
+        // ignore storage errors
+      }
+
+      return { ...state, devices, orders };
+    }
     case "DELETE_DEVICE":
       return {
         ...state,
@@ -197,11 +244,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
           (tech) => tech.id !== action.payload
         ),
       };
-    case "ADD_REPORT":
-      return {
-        ...state,
-        reports: [...state.reports, action.payload],
-      };
+    case "ADD_REPORT": {
+      const report = action.payload as Report;
+      const reports = Array.isArray(state.reports)
+        ? [...state.reports, report]
+        : [report];
+
+      try {
+        localStorage.setItem("reports", JSON.stringify(reports));
+      } catch {}
+
+      return { ...state, reports };
+    }
     case "UPDATE_REPORT":
       return {
         ...state,

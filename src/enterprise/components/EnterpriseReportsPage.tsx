@@ -6,7 +6,9 @@ interface EnterpriseReportsPageProps {
   onNavigate: (page: string) => void;
 }
 
-export function EnterpriseReportsPage({ onNavigate }: EnterpriseReportsPageProps) {
+export function EnterpriseReportsPage({
+  onNavigate,
+}: EnterpriseReportsPageProps) {
   const { state, dispatch } = useApp();
   const { devices, currentUser } = state;
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
@@ -23,7 +25,9 @@ export function EnterpriseReportsPage({ onNavigate }: EnterpriseReportsPageProps
     const pending = localStorage.getItem("pendingReportDeviceId");
     if (pending) {
       setSelectedDeviceId(pending);
-      try { localStorage.removeItem("pendingReportDeviceId"); } catch {}
+      try {
+        localStorage.removeItem("pendingReportDeviceId");
+      } catch {}
     }
   }, []);
 
@@ -43,7 +47,8 @@ export function EnterpriseReportsPage({ onNavigate }: EnterpriseReportsPageProps
     const report: Report = {
       id: Date.now().toString(),
       deviceId: selectedDeviceId,
-      orderId: (devices.find((d) => d.id === selectedDeviceId) || {}).orderId || "",
+      orderId:
+        (devices.find((d) => d.id === selectedDeviceId) || {}).orderId || "",
       reporterId: currentUser?.id || "",
       description: description.trim(),
       recipients: ["admin", "client"], // enterprise-created reports go to admin + client
@@ -68,7 +73,11 @@ export function EnterpriseReportsPage({ onNavigate }: EnterpriseReportsPageProps
       };
       dispatch({ type: "UPDATE_DEVICE", payload: updatedDevice });
       try {
-        const persisted = Array.isArray(state.devices) ? state.devices.map((d) => (d.id === updatedDevice.id ? updatedDevice : d)) : [updatedDevice];
+        const persisted = Array.isArray(state.devices)
+          ? state.devices.map((d) =>
+              d.id === updatedDevice.id ? updatedDevice : d
+            )
+          : [updatedDevice];
         localStorage.setItem("devices", JSON.stringify(persisted));
       } catch {}
     }
@@ -112,10 +121,18 @@ export function EnterpriseReportsPage({ onNavigate }: EnterpriseReportsPageProps
         </div>
 
         <div className="flex justify-end space-x-2">
-          <button type="button" onClick={() => onNavigate("dashboard")} className="px-4 py-2 border rounded">
+          <button
+            type="button"
+            onClick={() => onNavigate("dashboard")}
+            className="px-4 py-2 border rounded"
+          >
             Cancel
           </button>
-          <button type="submit" disabled={submitting} className="px-4 py-2 bg-green-600 text-white rounded">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-4 py-2 bg-green-600 text-white rounded"
+          >
             {submitting ? "Submitting..." : "Submit Report"}
           </button>
         </div>
@@ -124,13 +141,20 @@ export function EnterpriseReportsPage({ onNavigate }: EnterpriseReportsPageProps
       <div className="mt-8">
         <h2 className="text-lg font-semibold mb-2">Recent Reports</h2>
         <div className="space-y-3">
-          {(state.reports || []).slice().reverse().map((r: Report) => (
-            <div key={r.id} className="p-3 border rounded">
-              <div className="text-sm text-gray-600">Device: {r.deviceId} • Order: {r.orderId}</div>
-              <div className="font-medium">{r.description}</div>
-              <div className="text-xs text-gray-400">By: {r.reporterId} • {new Date(r.createdAt).toLocaleString()}</div>
-            </div>
-          ))}
+          {(state.reports || [])
+            .slice()
+            .reverse()
+            .map((r: Report) => (
+              <div key={r.id} className="p-3 border rounded">
+                <div className="text-sm text-gray-600">
+                  Device: {r.deviceId} • Order: {r.orderId}
+                </div>
+                <div className="font-medium">{r.description}</div>
+                <div className="text-xs text-gray-400">
+                  By: {r.reporterId} • {new Date(r.createdAt).toLocaleString()}
+                </div>
+              </div>
+            ))}
         </div>
       </div>
     </div>
