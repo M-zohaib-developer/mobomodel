@@ -34,71 +34,73 @@ export function ThemePopup({ onClose }: { onClose: () => void }) {
       name: "Red",
       payload: {
         theme: "light",
-        navbarBg: "#7f1d1d", // Deep red for strong header
-        btnBg: "#dc2626", // Vivid red for CTA buttons
-        cardBg: "#f3f4f6", // Light gray for clean card contrast
+        navbarBg: "#f30b0bff", // Deep red for strong header
+        btnBg: "#eb0606ff", // Vivid red for CTA buttons
+        cardBg: "#f50e19ff", // Light gray for clean card contrast
         bodyBg: "#e5e7eb", // Soft gray for subtle background
-        textColor: "#111827", // Rich dark gray for high readability
+        textColor: "#000000ff", // Rich dark gray for high readability
         // backgroundImage: "https://source.unsplash.com/1200x800/?red+abstract",
       },
-      imageUrl: "./src/public/image.png",
+      imageUrl: "./src/public/imager.png",
     },
 
     {
       name: "Green",
       payload: {
         theme: "light",
-        navbarBg: "#065f46",
-        btnBg: "#10b981",
-        cardBg: "#ecfdf5",
+        navbarBg: "#08f1afff",
+        btnBg: "#0ceca2ff",
+        cardBg: "#0bf186ff",
         bodyBg: "#f0fdf4",
-        textColor: "#064e3b",
+        textColor: "#000000ff",
         backgroundImage: "https://source.unsplash.com/1200x800/?green+tiger",
       },
-      imageUrl: "https://source.unsplash.com/400x300/?green+tiger",
+      imageUrl: "./src/public/imageg.png",
     },
     {
       name: "Purple",
       payload: {
         theme: "light",
-        navbarBg: "#5b21b6",
+        navbarBg: "#630eecff",
         btnBg: "#7c3aed",
-        cardBg: "#f5f3ff",
+        cardBg: "#340ef3ff",
         bodyBg: "#faf5ff",
-        textColor: "#1f1144",
+        textColor: "#000000ff",
         backgroundImage: "https://source.unsplash.com/1200x800/?purple",
       },
-      imageUrl: "https://source.unsplash.com/400x300/?purple",
+      imageUrl: "./src/public/imagep.png",
     },
     {
       name: "Orange",
       payload: {
         theme: "light",
-        navbarBg: "#92400e",
+        navbarBg: "#ec6510ff",
         btnBg: "#fb923c",
-        cardBg: "#fffbeb",
+        cardBg: "#fb923c",
         bodyBg: "#fff7ed",
-        textColor: "#3b2f1b",
+        textColor: "#000000ff",
         backgroundImage: "https://source.unsplash.com/1200x800/?orange",
       },
-      imageUrl: "https://source.unsplash.com/400x300/?orange",
+      imageUrl: "./src/public/imageo.png",
     },
     {
       name: "Teal",
       payload: {
         theme: "light",
-        navbarBg: "#0f766e",
+        navbarBg: "#14b8a6",
         btnBg: "#14b8a6",
-        cardBg: "#ecfeff",
+        cardBg: "#14b8a6",
         bodyBg: "#f0fdfa",
         textColor: "#064e3b",
         backgroundImage: "https://source.unsplash.com/1200x800/?teal",
       },
-      imageUrl: "https://source.unsplash.com/400x300/?teal",
+      imageUrl: "./src/public/imaget.png",
     },
   ];
 
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+  // default to true so admin's changes affect all roles unless they opt out
+  const [applyToAll, setApplyToAll] = useState<boolean>(true);
 
   // preview on mount or when any manual value changes
   useEffect(() => {
@@ -111,21 +113,47 @@ export function ThemePopup({ onClose }: { onClose: () => void }) {
       textColor,
       backgroundImage,
     };
-    if (setRoleTheme) setRoleTheme(role, payload);
+    if (setRoleTheme) {
+      if (applyToAll) {
+        // persist/apply for every role so admin changes affect whole site
+        ["admin", "client", "enterprise"].forEach((r) =>
+          setRoleTheme(r, payload)
+        );
+      } else {
+        setRoleTheme(role, payload);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme, navbarBg, btnBg, cardBg, bodyBg, textColor, backgroundImage]);
+  }, [
+    theme,
+    navbarBg,
+    btnBg,
+    cardBg,
+    bodyBg,
+    textColor,
+    backgroundImage,
+    applyToAll,
+  ]);
 
   const handleSave = () => {
     const payload: ThemePayload = {
       theme,
-      navbarBg,
-      btnBg,
-      cardBg,
-      bodyBg,
-      textColor,
-      backgroundImage,
+      navbarBg: navbarBg || undefined,
+      btnBg: btnBg || undefined,
+      cardBg: cardBg || undefined,
+      bodyBg: bodyBg || undefined,
+      textColor: textColor || undefined,
+      backgroundImage: backgroundImage || undefined,
     };
-    if (setRoleTheme) setRoleTheme(role, payload);
+    if (setRoleTheme) {
+      if (applyToAll) {
+        ["admin", "client", "enterprise"].forEach((r) =>
+          setRoleTheme(r, payload)
+        );
+      } else {
+        setRoleTheme(role, payload);
+      }
+    }
     onClose();
   };
 
@@ -159,7 +187,7 @@ export function ThemePopup({ onClose }: { onClose: () => void }) {
         {/* Preset theme buttons */}
         <div className="flex items-center gap-2 mb-4">
           <div className="flex-1 text-sm">Theme Styles</div>
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 items-center">
             {presets.map((p) => (
               <button
                 key={p.name}
@@ -171,6 +199,16 @@ export function ThemePopup({ onClose }: { onClose: () => void }) {
                 {p.name}
               </button>
             ))}
+
+            <label className="flex items-center text-xs ml-3">
+              <input
+                type="checkbox"
+                className="mr-2"
+                checked={applyToAll}
+                onChange={(e) => setApplyToAll(e.target.checked)}
+              />
+              Apply to all roles
+            </label>
           </div>
         </div>
 
@@ -297,20 +335,22 @@ export function ThemePopup({ onClose }: { onClose: () => void }) {
               />
 
               {/* Preset preview image (show only if user clicked) */}
-              <div className="col-span-2 mt-4">
-                {selectedPreset && (
-                  <div className="w-75 h-80 rounded border flex items-center justify-center bg-gray-100">
-                    <img
-                      src={
-                        presets.find((p) => p.name === selectedPreset)
-                          ?.imageUrl || ""
-                      }
-                      alt={`${selectedPreset} preview`}
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  </div>
-                )}
-              </div>
+            <div className="col-span-2 mt-4">
+  {selectedPreset && (
+    <div className="w-[300px] h-[300px] rounded border overflow-hidden bg-gray-100">
+      <img
+        src={
+          presets.find((p) => p.name === selectedPreset)?.imageUrl || ""
+        }
+        alt={`${selectedPreset} preview`}
+        className="w-full h-full object-contain"
+      />
+    </div>
+  )}
+</div>
+
+
+
             </div>
           </div>
         </div>

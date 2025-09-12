@@ -22,6 +22,16 @@ body {
   color: var(--app-text-color);
 }
 
+/* Ensure the main app containers also pick up the body/background variables so
+   changing Body Color in the ThemePopup affects the visible app area (not just body).
+   Exclude the login page which uses its own background. */
+body:not(.login-page) #root,
+body:not(.login-page) .min-h-screen,
+body:not(.login-page) .app-root {
+  background: var(--app-body-bg) var(--app-bg-image) no-repeat center/cover !important;
+  color: var(--app-text-color) !important;
+}
+
 .app-navbar {
   background-color: var(--app-navbar-bg) !important;
   color: var(--app-text-color) !important;
@@ -39,7 +49,7 @@ body {
 
 /* Drawer / popup styling helpers */
 .theme-drawer {
-  width: 480px;
+  width: 680px;
   max-width: 95%;
   background: var(--app-card-bg);
   color: var(--app-text-color);
@@ -97,5 +107,25 @@ button {
 /* Ensure navbar specifically uses the navbar variable (placed last so it wins) */
 nav.app-navbar {
   background-color: var(--app-navbar-bg) !important;
+  color: var(--app-text-color) !important;
+}
+
+/* Target common 'card' patterns used in components - keep specific to avoid global overrides
+   and exclude the login page so it keeps its own background. */
+body:not(.login-page) .rounded-xl.p-6.border,
+body:not(.login-page) .rounded-xl.p-6,
+body:not(.login-page) .card,
+body:not(.login-page) .panel,
+body:not(.login-page) .card-wrapper,
+body:not(.login-page) .bg-white,
+body:not(.login-page) .shadow-md {
+  background-color: var(--app-card-bg) !important;
+  color: var(--app-text-color) !important;
+}
+
+/* Target tailwind panel wrappers that use 'w-full max-w-md rounded-xl p-6' etc. */
+body:not(.login-page) .w-full.max-w-md.rounded-xl.p-6,
+body:not(.login-page) .w-full.max-w-2xl.rounded-xl.p-6 {
+  background-color: var(--app-card-bg) !important;
   color: var(--app-text-color) !important;
 }
