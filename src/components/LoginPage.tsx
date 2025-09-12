@@ -82,17 +82,21 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
   return (
 <div className="min-h-screen bg-green flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-<div className="bg-green-900 rounded-2xl border border-green-700 p-8 shadow-2xl">
+<div className="bg-gradient-to-r from-black via-gray-900 to-gray-700 rounded-2xl p-8 shadow-2xl text-white">
+
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
               <Smartphone className="h-12 w-12 text-green-400" />
             </div>
-             <img
-            src="/src/public/image.png"
-            alt="Hello Logo"
-            className="mx-auto mb-4 w-100 h-12 object-contain"
-          />
+         <img
+  src="https://mobocheck.com/images/mobocheck-logo.png"
+  alt="Hello Logo"
+  className="mx-auto mb-4 w-100 h-12 object-contain"
+  style={{ filter: "brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(600%) hue-rotate(90deg) contrast(90%)" }}
+/>
+
+
             <p className="text-green-200">
               Device Refurbishment Management System
             </p>

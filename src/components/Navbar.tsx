@@ -64,6 +64,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
           },
           { id: "technician-management", label: "Technicians", icon: Users },
           { id: "analytics", label: "Analytics", icon: FileText },
+          { id: "admin-reports", label: "Reports", icon: FileText },
           ...commonItems.slice(1),
         ];
       default:
@@ -127,13 +128,13 @@ export function Navbar({ onNavigate }: NavbarProps) {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div
+            {/* <div
               className={`text-sm ${
                 currentTheme === "dark" ? "text-gray-300" : "text-gray-600"
               }`}
             >
               {currentUser?.name} ({currentUser?.role})
-            </div>
+            </div> */}
             <button
               onClick={handleLogout}
               className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${

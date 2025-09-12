@@ -23,6 +23,7 @@ import { TechnicianManagementPage as TechnicianPage } from "./enterprise/compone
 
 import { UserManagementPage } from "./admin/components/UserManagementPage";
 import { OrderManagementPage } from "./admin/components/OrderManagementPage";
+import { AdminReportsPage } from "./admin/components/AdminReportsPage";
 import { TechnicianManagementPage } from "./admin/components/TechnicianManagementPage";
 import { AnalyticsPage } from "./admin/components/AnalyticsPage";
 
@@ -90,6 +91,8 @@ function AppContent() {
         return <TechnicianManagementPage onNavigate={handleNavigate} />;
       case "analytics":
         return <AnalyticsPage onNavigate={handleNavigate} />;
+        case "admin-reports":
+        return <AdminReportsPage onNavigate={handleNavigate} />;
       case "reports":
         return <EnterpriseReportsPage onNavigate={handleNavigate} />;
         case "client-reports":

@@ -10,7 +10,7 @@ export function EnterpriseReportsPage({
   onNavigate,
 }: EnterpriseReportsPageProps) {
   const { state, dispatch } = useApp();
-  const { devices, currentUser } = state;
+  const { devices, currentUser, settings } = state;
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -89,7 +89,11 @@ export function EnterpriseReportsPage({
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div
+      className={`min-h-screen p-6 transition-colors duration-200 ${
+        settings?.theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-900"
+      }`}
+    >
       <h1 className="text-2xl font-bold mb-4">Enterprise Reports</h1>
 
       <form onSubmit={handleSubmitReport} className="max-w-2xl space-y-4">
@@ -141,20 +145,18 @@ export function EnterpriseReportsPage({
       <div className="mt-8">
         <h2 className="text-lg font-semibold mb-2">Recent Reports</h2>
         <div className="space-y-3">
-          {(state.reports || [])
-            .slice()
-            .reverse()
-            .map((r: Report) => (
-              <div key={r.id} className="p-3 border rounded">
-                <div className="text-sm text-gray-600">
-                  Device: {r.deviceId} • Order: {r.orderId}
-                </div>
-                <div className="font-medium">{r.description}</div>
-                <div className="text-xs text-gray-400">
-                  By: {r.reporterId} • {new Date(r.createdAt).toLocaleString()}
-                </div>
-              </div>
-            ))}
+          {(state.reports || []).slice().reverse().map((r: Report) => (
+            <div
+              key={r.id}
+              className={`p-3 rounded ${
+                settings?.theme === "dark" ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"
+              }`}
+            >
+              <div className={`${settings?.theme === "dark" ? "text-gray-300" : "text-gray-600"} text-sm`}>Device: {r.deviceId} • Order: {r.orderId}</div>
+              <div className="font-medium">{r.description}</div>
+              <div className={`${settings?.theme === "dark" ? "text-gray-400" : "text-gray-400"} text-xs`}>By: {r.reporterId} • {new Date(r.createdAt).toLocaleString()}</div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -8,7 +8,7 @@ interface ClientReportsPageProps {
 
 export function ClientReportsPage({ onNavigate }: ClientReportsPageProps) {
   const { state } = useApp();
-  const { reports = [], devices = [], currentUser } = state;
+  const { reports = [], devices = [], currentUser, settings } = state;
 
   // client sees reports addressed to clients and related to their own devices
   const visibleReports = (reports as Report[]).filter((r) => {
@@ -19,12 +19,24 @@ export function ClientReportsPage({ onNavigate }: ClientReportsPageProps) {
   });
 
   return (
-    <div className="min-h-screen p-6">
+    <div
+      className={`min-h-screen p-6 transition-colors duration-200 ${
+        settings?.theme === "dark"
+          ? "bg-gray-900 text-gray-100"
+          : "bg-gray-50 text-gray-900"
+      }`}
+    >
       <h1 className="text-2xl font-bold mb-4">My Reports</h1>
 
       <div className="space-y-3">
         {visibleReports.length === 0 && (
-          <div className="text-sm text-gray-500">No reports available</div>
+          <div
+            className={`${
+              settings?.theme === "dark" ? "text-gray-400" : "text-gray-500"
+            } text-sm`}
+          >
+            No reports available
+          </div>
         )}
         {visibleReports
           .slice()
@@ -34,14 +46,33 @@ export function ClientReportsPage({ onNavigate }: ClientReportsPageProps) {
               (d) => d.id === r.deviceId
             );
             return (
-              <div key={r.id} className="p-3 border rounded">
-                <div className="text-sm text-gray-600">
+              <div
+                key={r.id}
+                className={`p-3 rounded ${
+                  settings?.theme === "dark"
+                    ? "bg-gray-800 border border-gray-700"
+                    : "bg-white border border-gray-200"
+                }`}
+              >
+                <div
+                  className={`${
+                    settings?.theme === "dark"
+                      ? "text-gray-300"
+                      : "text-gray-600"
+                  } text-sm`}
+                >
                   Device:{" "}
                   {device ? `${device.brand} ${device.model}` : r.deviceId} •
                   Order: {r.orderId}
                 </div>
                 <div className="font-medium">{r.description}</div>
-                <div className="text-xs text-gray-400">
+                <div
+                  className={`${
+                    settings?.theme === "dark"
+                      ? "text-gray-400"
+                      : "text-gray-400"
+                  } text-xs`}
+                >
                   By: {r.reporterId} • {new Date(r.createdAt).toLocaleString()}
                 </div>
               </div>

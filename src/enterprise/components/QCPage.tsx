@@ -291,7 +291,7 @@ export function QCPage({ onNavigate }: QCPageProps) {
                           <div className="font-medium">
                             {device.brand} {device.model}
                           </div>
-                          <div
+                          {/* <div
                             className={`text-sm ${
                               settings.theme === "dark"
                                 ? "text-gray-400"
@@ -299,7 +299,7 @@ export function QCPage({ onNavigate }: QCPageProps) {
                             }`}
                           >
                             IMEI: {device.imei}
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                     </td>
