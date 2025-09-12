@@ -86,9 +86,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
   return (
     <nav
       className={`app-navbar sticky top-0 z-50 border-b transition-colors duration-200 ${
-        currentTheme === "dark"
-          ? "bg-gray-900 border-gray-700"
-          : "bg-white border-gray-200"
+        currentTheme === "dark" ? "border-gray-700" : "border-gray-200"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4">
@@ -97,9 +95,8 @@ export function Navbar({ onNavigate }: NavbarProps) {
             <div className="flex items-center">
               <Smartphone className="h-8 w-8 text-green-600" />
               <span
-                className={`ml-2 text-xl font-bold ${
-                  currentTheme === "dark" ? "text-white" : "text-gray-900"
-                }`}
+                className="ml-2 text-xl font-bold"
+                style={{ color: "var(--app-text-color)" }}
               >
                 MoboCheck
               </span>
@@ -116,10 +113,11 @@ export function Navbar({ onNavigate }: NavbarProps) {
                     className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                       isActive
                         ? "bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100"
-                        : currentTheme === "dark"
-                        ? "text-gray-300 hover:text-white hover:bg-gray-700"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                        : "hover:bg-gray-100"
                     }`}
+                    style={{
+                      color: isActive ? undefined : "var(--app-text-color)",
+                    }}
                   >
                     <Icon className="h-4 w-4 mr-2" />
                     {item.label}

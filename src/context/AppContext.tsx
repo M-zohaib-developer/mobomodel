@@ -213,7 +213,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       try {
         localStorage.setItem("devices", JSON.stringify(devices));
         localStorage.setItem("orders", JSON.stringify(orders));
-      } catch (e) {
+      } catch {
         // ignore storage errors
       }
 
@@ -365,14 +365,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("roleThemes", JSON.stringify(roleThemes));
       // update in-memory state
       dispatch({ type: "SET_ROLE_THEMES", payload: roleThemes });
-      // apply immediately if current user matches role
-      if (state.currentUser?.role === role) {
-        applyRoleCssVars(payload);
+      // apply immediately so admin preview and users see changes
+      applyRoleCssVars(payload);
+      // update the settings theme flag for the role so useCurrentTheme reflects changes
+      if (payload.theme) {
+        const r = role as "client" | "enterprise" | "admin";
+        dispatch({
+          type: "UPDATE_ROLE_THEME",
+          payload: { role: r, theme: payload.theme },
+        });
       }
     } catch (err) {
       console.error("Failed to persist role theme", err);
     }
   };
+
+  // On mount, load roleThemes from localStorage and apply for current user
+  useEffect(() => {
+    try {
+      const stored: Record<string, RoleThemePayload> = JSON.parse(
+        localStorage.getItem("roleThemes") || "{}"
+      );
+      if (Object.keys(stored).length > 0) {
+        dispatch({ type: "SET_ROLE_THEMES", payload: stored });
+      }
+      if (state.currentUser && stored[state.currentUser.role]) {
+        applyRoleCssVars(stored[state.currentUser.role]);
+      }
+    } catch {
+      // ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // When currentUser changes, apply their saved role theme if any
+  useEffect(() => {
+    try {
+      const stored: Record<string, RoleThemePayload> =
+        state.roleThemes ||
+        JSON.parse(localStorage.getItem("roleThemes") || "{}");
+      if (state.currentUser && stored && stored[state.currentUser.role]) {
+        applyRoleCssVars(stored[state.currentUser.role]);
+      }
+    } catch {
+      // ignore
+    }
+  }, [state.currentUser, state.roleThemes]);
 
   // Load state from localStorage on mount
   useEffect(() => {

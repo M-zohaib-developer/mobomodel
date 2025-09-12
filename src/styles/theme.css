@@ -37,6 +37,22 @@ body {
   color: #fff !important;
 }
 
+/* Drawer / popup styling helpers */
+.theme-drawer {
+  width: 480px;
+  max-width: 95%;
+  background: var(--app-card-bg);
+  color: var(--app-text-color);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+}
+
+/* Make buttons use app btn color by default */
+.btn-primary,
+.btn-primary:hover {
+  background-color: var(--app-btn-bg) !important;
+  color: #fff !important;
+}
+
 /* Override some commonly used Tailwind utility classes so theme variables apply
    across the app even when components use Tailwind classes like bg-green-600. */
 
@@ -48,16 +64,12 @@ body {
 }
 
 /* Card & white backgrounds -> use app card/background vars */
-.bg-white,
-.bg-gray-50,
-.bg-gray-100 {
-  background-color: var(--app-card-bg) !important;
-}
+/* NOTE: avoid overriding generic utility classes like .bg-white globally
+   because some elements (like the navbar) also use those classes.
+   We map component-specific classes instead (e.g., .app-card). */
 
 /* Body-level background */
-.bg-gray-50 {
-  background-color: var(--app-body-bg) !important;
-}
+/* keep body styling via :root variables and elements that use them */
 
 /* Text colors -> use app text color */
 .text-white,
@@ -80,4 +92,10 @@ textarea,
 select,
 button {
   color: var(--app-text-color);
+}
+
+/* Ensure navbar specifically uses the navbar variable (placed last so it wins) */
+nav.app-navbar {
+  background-color: var(--app-navbar-bg) !important;
+  color: var(--app-text-color) !important;
 }

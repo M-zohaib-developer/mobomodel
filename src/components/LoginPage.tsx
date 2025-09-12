@@ -80,9 +80,10 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
   };
 
   return (
-<div className="min-h-screen bg-green flex items-center justify-center p-4">
+<div className="min-h-screen bg-green flex items-center justify-center p-4 bg-gradient-to-b from-teal-700 via-teal-600 to-teal-500 ">
       <div className="w-full max-w-md">
-<div className="bg-gradient-to-r from-black via-gray-900 to-gray-700 rounded-2xl p-8 shadow-2xl text-white">
+<div className="bg-gradient-to-r from-green-900 via-green-700 to-green-500
+ rounded-2xl p-8 shadow-2xl text-white">
 
           {/* Header */}
           <div className="text-center mb-8">
@@ -147,7 +148,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 bg-black/40 border border-green-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 bg-black/40 border border-green-500/30 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                   placeholder="Enter your email"
                 />
               </div>

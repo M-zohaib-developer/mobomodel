@@ -28,20 +28,92 @@ export function ThemePopup({ onClose }: { onClose: () => void }) {
     existing.backgroundImage || ""
   );
 
+  // Built-in presets (five themes) with images. You can replace image URLs later.
+  const presets: { name: string; payload: ThemePayload; imageUrl: string }[] = [
+    {
+      name: "Red",
+      payload: {
+        theme: "light",
+        navbarBg: "#7f1d1d", // Deep red for strong header
+        btnBg: "#dc2626", // Vivid red for CTA buttons
+        cardBg: "#f3f4f6", // Light gray for clean card contrast
+        bodyBg: "#e5e7eb", // Soft gray for subtle background
+        textColor: "#111827", // Rich dark gray for high readability
+        // backgroundImage: "https://source.unsplash.com/1200x800/?red+abstract",
+      },
+      imageUrl: "./src/public/image.png",
+    },
+
+    {
+      name: "Green",
+      payload: {
+        theme: "light",
+        navbarBg: "#065f46",
+        btnBg: "#10b981",
+        cardBg: "#ecfdf5",
+        bodyBg: "#f0fdf4",
+        textColor: "#064e3b",
+        backgroundImage: "https://source.unsplash.com/1200x800/?green+tiger",
+      },
+      imageUrl: "https://source.unsplash.com/400x300/?green+tiger",
+    },
+    {
+      name: "Purple",
+      payload: {
+        theme: "light",
+        navbarBg: "#5b21b6",
+        btnBg: "#7c3aed",
+        cardBg: "#f5f3ff",
+        bodyBg: "#faf5ff",
+        textColor: "#1f1144",
+        backgroundImage: "https://source.unsplash.com/1200x800/?purple",
+      },
+      imageUrl: "https://source.unsplash.com/400x300/?purple",
+    },
+    {
+      name: "Orange",
+      payload: {
+        theme: "light",
+        navbarBg: "#92400e",
+        btnBg: "#fb923c",
+        cardBg: "#fffbeb",
+        bodyBg: "#fff7ed",
+        textColor: "#3b2f1b",
+        backgroundImage: "https://source.unsplash.com/1200x800/?orange",
+      },
+      imageUrl: "https://source.unsplash.com/400x300/?orange",
+    },
+    {
+      name: "Teal",
+      payload: {
+        theme: "light",
+        navbarBg: "#0f766e",
+        btnBg: "#14b8a6",
+        cardBg: "#ecfeff",
+        bodyBg: "#f0fdfa",
+        textColor: "#064e3b",
+        backgroundImage: "https://source.unsplash.com/1200x800/?teal",
+      },
+      imageUrl: "https://source.unsplash.com/400x300/?teal",
+    },
+  ];
+
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+
+  // preview on mount or when any manual value changes
   useEffect(() => {
-    // preview on mount
-    if (setRoleTheme)
-      setRoleTheme(role, {
-        theme,
-        navbarBg,
-        btnBg,
-        cardBg,
-        bodyBg,
-        textColor,
-        backgroundImage,
-      });
+    const payload: ThemePayload = {
+      theme,
+      navbarBg,
+      btnBg,
+      cardBg,
+      bodyBg,
+      textColor,
+      backgroundImage,
+    };
+    if (setRoleTheme) setRoleTheme(role, payload);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [theme, navbarBg, btnBg, cardBg, bodyBg, textColor, backgroundImage]);
 
   const handleSave = () => {
     const payload: ThemePayload = {
@@ -57,10 +129,50 @@ export function ThemePopup({ onClose }: { onClose: () => void }) {
     onClose();
   };
 
+  const applyPreset = (preset: {
+    name: string;
+    payload: ThemePayload;
+    imageUrl: string;
+  }) => {
+    const p = preset.payload;
+    setTheme(p.theme || "light");
+    setNavbarBg(p.navbarBg || "");
+    setBtnBg(p.btnBg || "");
+    setCardBg(p.cardBg || "");
+    setBodyBg(p.bodyBg || "");
+    setTextColor(p.textColor || "");
+    setBackgroundImage(p.backgroundImage || "");
+    setSelectedPreset(preset.name);
+    if (setRoleTheme) setRoleTheme(role, p);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-2xl p-6 rounded-lg bg-white dark:bg-gray-800">
-        <h2 className="text-lg font-semibold mb-4">Admin Theme Popup</h2>
+    <div className="fixed inset-0 z-50 bg-black/40">
+      <div className="absolute right-0 top-0 h-full theme-drawer overflow-auto p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Switcher</h2>
+          <button onClick={onClose} className="text-sm px-2 py-1">
+            ✕
+          </button>
+        </div>
+
+        {/* Preset theme buttons */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex-1 text-sm">Theme Styles</div>
+          <div className="flex space-x-2">
+            {presets.map((p) => (
+              <button
+                key={p.name}
+                onClick={() => applyPreset(p)}
+                className={`px-3 py-1 rounded text-sm ${
+                  selectedPreset === p.name ? "ring-2 ring-offset-1" : "border"
+                }`}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -137,17 +249,6 @@ export function ThemePopup({ onClose }: { onClose: () => void }) {
               }}
               className="w-20 h-10"
             />
-
-            <label className="block text-sm font-medium mt-3">
-              Background Image URL
-            </label>
-            <input
-              type="text"
-              value={backgroundImage}
-              onChange={(e) => setBackgroundImage(e.target.value)}
-              placeholder="https://...jpg"
-              className="w-full px-3 py-2 border rounded"
-            />
           </div>
 
           <div>
@@ -194,6 +295,22 @@ export function ThemePopup({ onClose }: { onClose: () => void }) {
                     : "none",
                 }}
               />
+
+              {/* Preset preview image (show only if user clicked) */}
+              <div className="col-span-2 mt-4">
+                {selectedPreset && (
+                  <div className="w-75 h-80 rounded border flex items-center justify-center bg-gray-100">
+                    <img
+                      src={
+                        presets.find((p) => p.name === selectedPreset)
+                          ?.imageUrl || ""
+                      }
+                      alt={`${selectedPreset} preview`}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
