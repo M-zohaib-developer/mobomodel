@@ -12,6 +12,8 @@ export interface Device {
   brand: string;
   model: string;
   imei: string;
+  // optional link to an order
+  orderId?: string;
   reportedIssue: string;
   status:
     | "pending"
@@ -41,6 +43,16 @@ export interface Device {
   technicianDate?: string;
   clearanceDate?: string;
   inventoryDate?: string;
+}
+
+export interface RoleThemePayload {
+  theme?: "light" | "dark";
+  navbarBg?: string;
+  btnBg?: string;
+  cardBg?: string;
+  bodyBg?: string;
+  textColor?: string;
+  backgroundImage?: string;
 }
 
 export interface Order {
@@ -154,4 +166,17 @@ export interface AppState {
   inventoryReviews: InventoryReview[];
   settings: AppSettings;
   currentPage: string;
+  // Optional per-role theme payloads persisted separately
+  roleThemes?: Record<
+    string,
+    {
+      theme?: "light" | "dark";
+      navbarBg?: string;
+      btnBg?: string;
+      cardBg?: string;
+      bodyBg?: string;
+      textColor?: string;
+      backgroundImage?: string;
+    }
+  >;
 }

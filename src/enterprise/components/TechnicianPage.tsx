@@ -114,6 +114,8 @@ export function TechnicianManagementPage({
     const updatedDevice: Device = {
       ...device,
       status: "qc",
+      // clear technician assignment so it no longer appears on technician page
+      technicianId: undefined as any,
       technicianNotes: [
         ...(device.technicianNotes || []),
         `Approved by technician on ${new Date().toISOString()}`,
@@ -143,6 +145,8 @@ export function TechnicianManagementPage({
     const updatedDevice: Device = {
       ...device,
       status: "inventory",
+      // clear technician assignment so it no longer appears on technician page
+      technicianId: undefined as any,
       technicianNotes: [
         ...(device.technicianNotes || []),
         `Rejected by technician on ${new Date().toISOString()}`,

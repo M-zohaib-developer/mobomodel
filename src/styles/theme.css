@@ -1,0 +1,83 @@
+:root {
+  /* Default theme variables */
+  --app-navbar-bg: #0f766e;
+  --app-btn-bg: #059669;
+  --app-card-bg: #ffffff;
+  --app-body-bg: #f8fafc;
+  --app-text-color: #0f172a;
+  --app-primary: #10b981;
+  --app-bg-image: none;
+}
+
+[data-app-theme="dark"] {
+  --app-navbar-bg: #042f2f;
+  --app-btn-bg: #064e3b;
+  --app-card-bg: #0b1220;
+  --app-body-bg: #071421;
+  --app-text-color: #e6eef4;
+}
+
+body {
+  background: var(--app-body-bg) var(--app-bg-image) no-repeat center/cover;
+  color: var(--app-text-color);
+}
+
+.app-navbar {
+  background-color: var(--app-navbar-bg) !important;
+  color: var(--app-text-color) !important;
+}
+
+.app-card {
+  background-color: var(--app-card-bg) !important;
+  color: var(--app-text-color) !important;
+}
+
+.btn-primary {
+  background-color: var(--app-btn-bg) !important;
+  color: #fff !important;
+}
+
+/* Override some commonly used Tailwind utility classes so theme variables apply
+   across the app even when components use Tailwind classes like bg-green-600. */
+
+/* Buttons using Tailwind green classes -> use app btn color */
+.bg-green-600,
+.bg-green-700,
+.hover\:bg-green-700:hover {
+  background-color: var(--app-btn-bg) !important;
+}
+
+/* Card & white backgrounds -> use app card/background vars */
+.bg-white,
+.bg-gray-50,
+.bg-gray-100 {
+  background-color: var(--app-card-bg) !important;
+}
+
+/* Body-level background */
+.bg-gray-50 {
+  background-color: var(--app-body-bg) !important;
+}
+
+/* Text colors -> use app text color */
+.text-white,
+.text-gray-900,
+.text-gray-700,
+.text-gray-600 {
+  color: var(--app-text-color) !important;
+}
+
+/* Rounded avatars / badges that previously used green */
+.bg-green-600.rounded-full,
+.rounded-full.bg-green-600 {
+  background-color: var(--app-btn-bg) !important;
+  color: var(--app-text-color) !important;
+}
+
+/* Inputs and controls */
+input,
+textarea,
+select,
+button {
+  color: var(--app-text-color);
+}

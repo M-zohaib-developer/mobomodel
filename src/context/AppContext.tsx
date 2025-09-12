@@ -11,6 +11,7 @@ import {
   TechnicianReview,
   ClearanceReview,
   InventoryReview,
+  RoleThemePayload,
 } from "../types";
 
 type AppAction =
@@ -42,6 +43,7 @@ type AppAction =
   | { type: "UPDATE_USER"; payload: Partial<User> }
   | { type: "ADD_USER"; payload: User }
   | { type: "DELETE_USER"; payload: string }
+  | { type: "SET_ROLE_THEMES"; payload: Record<string, RoleThemePayload> }
   | { type: "INITIALIZE_STATE"; payload: AppState };
 
 const initialState: AppState = {
@@ -70,8 +72,10 @@ const initialState: AppState = {
       createdAt: new Date().toISOString(),
     },
   ],
-  devices: [],
-  orders: [],
+  // ✅ Hydrate devices & orders from localStorage
+  devices: JSON.parse(localStorage.getItem("devices") || "[]"),
+  orders: JSON.parse(localStorage.getItem("orders") || "[]"),
+
   technicians: [
     {
       id: "1",
@@ -113,17 +117,17 @@ function mapDeviceToOrderStatus(deviceStatus: string) {
   // map internal device statuses to order statuses (adjust labels to your app if needed)
   switch (deviceStatus) {
     case "qc":
-      return "in-qc";
+      return "in-progress";
     case "technician":
-      return "with-technician";
+      return "in-progress";
     case "inventory":
-      return "in-inventory";
+      return "in-progress";
     case "clearance":
-      return "in-clearance";
+      return "in-progress";
     case "completed":
       return "completed";
     case "failed":
-      return "failed";
+      return "pending";
     default:
       return deviceStatus;
   }
@@ -151,7 +155,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         settings: { ...state.settings, ...action.payload },
       };
-    case "UPDATE_ROLE_THEME":
+    case "UPDATE_ROLE_THEME": {
       const { role, theme } = action.payload;
       const roleThemeKey = `${role}Theme` as keyof AppSettings;
       return {
@@ -163,6 +167,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
           theme:
             state.currentUser?.role === role ? theme : state.settings.theme,
         },
+      };
+    }
+
+    case "SET_ROLE_THEMES":
+      return {
+        ...state,
+        roleThemes: action.payload,
       };
     case "SET_CURRENT_PAGE":
       return {
@@ -252,7 +263,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
       try {
         localStorage.setItem("reports", JSON.stringify(reports));
-      } catch {}
+      } catch (err) {
+        console.error("Failed to persist reports", err);
+      }
 
       return { ...state, reports };
     }
@@ -313,10 +326,53 @@ function appReducer(state: AppState, action: AppAction): AppState {
 const AppContext = createContext<{
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
+  setRoleTheme?: (role: string, payload: RoleThemePayload) => void;
 } | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+
+  // Apply CSS variables for a given payload
+  const applyRoleCssVars = (payload?: RoleThemePayload) => {
+    if (!payload) return;
+    const root = document.documentElement;
+    if (payload.navbarBg)
+      root.style.setProperty("--app-navbar-bg", payload.navbarBg);
+    if (payload.btnBg) root.style.setProperty("--app-btn-bg", payload.btnBg);
+    if (payload.cardBg) root.style.setProperty("--app-card-bg", payload.cardBg);
+    if (payload.bodyBg) root.style.setProperty("--app-body-bg", payload.bodyBg);
+    if (payload.textColor)
+      root.style.setProperty("--app-text-color", payload.textColor);
+    if (payload.backgroundImage)
+      root.style.setProperty(
+        "--app-bg-image",
+        `url(${payload.backgroundImage})`
+      );
+    if (payload.theme === "dark") {
+      document.documentElement.setAttribute("data-app-theme", "dark");
+    } else if (payload.theme === "light") {
+      document.documentElement.removeAttribute("data-app-theme");
+    }
+  };
+
+  // Persist and apply a role-scoped theme
+  const setRoleTheme = (role: string, payload: RoleThemePayload) => {
+    try {
+      const roleThemes: Record<string, RoleThemePayload> = JSON.parse(
+        localStorage.getItem("roleThemes") || "{}"
+      );
+      roleThemes[role] = payload;
+      localStorage.setItem("roleThemes", JSON.stringify(roleThemes));
+      // update in-memory state
+      dispatch({ type: "SET_ROLE_THEMES", payload: roleThemes });
+      // apply immediately if current user matches role
+      if (state.currentUser?.role === role) {
+        applyRoleCssVars(payload);
+      }
+    } catch (err) {
+      console.error("Failed to persist role theme", err);
+    }
+  };
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -337,7 +393,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [state]);
 
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    <AppContext.Provider value={{ state, dispatch, setRoleTheme }}>
       {children}
     </AppContext.Provider>
   );

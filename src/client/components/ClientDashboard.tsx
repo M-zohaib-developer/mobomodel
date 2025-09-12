@@ -115,7 +115,7 @@ export function ClientDashboard({ onNavigate }: ClientDashboardProps) {
       },
       {
         label: "View Reports",
-        action: () => onNavigate("reports"),
+        action: () => onNavigate("client-reports"),
         color: "bg-purple-600 hover:bg-purple-700",
       },
     ];

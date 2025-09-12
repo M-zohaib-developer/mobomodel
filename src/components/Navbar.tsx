@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import {
   Home,
   Package,
@@ -12,6 +12,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useApp, useCurrentTheme } from "../context/AppContext";
+import ThemePopup from "../admin/components/ThemePopup";
 
 interface NavbarProps {
   onNavigate: (page: string) => void;
@@ -21,6 +22,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
   const { state, dispatch } = useApp();
   const currentTheme = useCurrentTheme();
   const { currentPage, currentUser } = state;
+  const [showThemePopup, setShowThemePopup] = useState(false);
 
   const getNavItems = () => {
     if (!currentUser) return [];
@@ -37,7 +39,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
           { id: "place-order", label: "Place Order", icon: Plus },
           { id: "order-tracking", label: "Track Orders", icon: Search },
           // { id: "reports", label: "Reports", icon: FileText },
-          { id: "client-reports", label: "Reports", icon: FileText},
+          { id: "client-reports", label: "Reports", icon: FileText },
           ...commonItems.slice(1),
         ];
       case "enterprise":
@@ -50,7 +52,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
           // { id: "repair-qc-page", label: "Repair QC", icon: CheckCircle },
           { id: "inventory-page", label: "Inventory", icon: Package },
           { id: "reports", label: "Reports", icon: FileText },
-          
+
           ...commonItems.slice(1),
         ];
       case "admin":
@@ -83,7 +85,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
 
   return (
     <nav
-      className={`sticky top-0 z-50 border-b transition-colors duration-200 ${
+      className={`app-navbar sticky top-0 z-50 border-b transition-colors duration-200 ${
         currentTheme === "dark"
           ? "bg-gray-900 border-gray-700"
           : "bg-white border-gray-200"
@@ -135,6 +137,20 @@ export function Navbar({ onNavigate }: NavbarProps) {
             >
               {currentUser?.name} ({currentUser?.role})
             </div> */}
+            {currentUser?.role === "admin" && (
+              <button
+                onClick={() => setShowThemePopup(true)}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  currentTheme === "dark"
+                    ? "text-gray-300 hover:text-white hover:bg-gray-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                }`}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Theme
+              </button>
+            )}
+
             <button
               onClick={handleLogout}
               className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
@@ -175,6 +191,9 @@ export function Navbar({ onNavigate }: NavbarProps) {
           </div>
         </div>
       </div>
+      {showThemePopup && (
+        <ThemePopup onClose={() => setShowThemePopup(false)} />
+      )}
     </nav>
   );
 }
