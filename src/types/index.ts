@@ -12,6 +12,7 @@ export interface Device {
   brand: string;
   model: string;
   imei: string;
+  boxId?: string;
   // optional link to an order
   orderId?: string;
   reportedIssue: string;
